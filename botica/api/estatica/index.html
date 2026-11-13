@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Botica Sophia · Sistema Inteligente de Abastecimiento</title>
+<style>
+  :root {
+    --fondo: #0f1419;
+    --superficie: #171d24;
+    --superficie-2: #1e252e;
+    --borde: #2a323d;
+    --texto: #e6e9ed;
+    --texto-suave: #9aa4b0;
+    --acento: #4fb3a9;
+    --acento-fuerte: #3a9a90;
+    --verde: #3fb67a;
+    --amarillo: #e0b341;
+    --rojo: #e2595b;
+    --gris: #7c8794;
+    --radio: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--fondo);
+    color: var(--texto);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  header {
+    padding: 22px 32px;
+    border-bottom: 1px solid var(--borde);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  header h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: .2px; }
+  header h1 span { color: var(--acento); }
+  header p { margin: 2px 0 0; color: var(--texto-suave); font-size: 13px; }
+  main { padding: 24px 32px 48px; max-width: 1400px; margin: 0 auto; }
+  .rejilla { display: grid; grid-template-columns: minmax(300px, 380px) 1fr; gap: 20px; align-items: start; }
+  .tarjeta {
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    padding: 18px 20px;
+  }
+  h2 { margin: 0 0 14px; font-size: 15px; font-weight: 600; color: var(--texto); }
+  h3 { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--texto-suave); text-transform: uppercase; letter-spacing: .6px; }
+  label { display: block; font-size: 13px; color: var(--texto-suave); margin: 12px 0 4px; }
+  input, select {
+    width: 100%;
+    padding: 9px 11px;
+    background: var(--superficie-2);
+    border: 1px solid var(--borde);
+    border-radius: 7px;
+    color: var(--texto);
+    font: inherit;
+  }
+  input:focus, select:focus { outline: 2px solid var(--acento); outline-offset: -1px; }
+  input.difiere { border-color: var(--amarillo); }
+  .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .ayuda { font-size: 12px; color: var(--texto-suave); margin-top: 4px; min-height: 18px; }
+  .ayuda.aviso { color: var(--amarillo); }
+  button {
+    font: inherit; font-weight: 600; cursor: pointer;
+    border-radius: 7px; padding: 10px 16px; border: 1px solid transparent;
+  }
+  .boton-principal { width: 100%; margin-top: 18px; background: var(--acento); color: #08201d; }
+  .boton-principal:hover { background: var(--acento-fuerte); }
+  .boton-principal:disabled { opacity: .6; cursor: wait; }
+  .boton-secundario { background: transparent; color: var(--texto); border-color: var(--borde); }
+  .boton-secundario:hover { border-color: var(--rojo); color: var(--rojo); }
+  .vacio { color: var(--texto-suave); font-size: 14px; }
+  .indicadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .indicador { background: var(--superficie-2); border: 1px solid var(--borde); border-radius: 8px; padding: 12px 14px; }
+  .indicador .etiqueta { font-size: 12px; color: var(--texto-suave); }
+  .indicador .valor { font-size: 18px; font-weight: 600; margin-top: 2px; word-break: break-word; }
+  .insignia {
+    display: inline-block; padding: 3px 10px; border-radius: 999px;
+    font-size: 13px; font-weight: 700; letter-spacing: .3px;
+    border: 1px solid currentColor;
+  }
+  .d-AUTO_BORRADOR { color: var(--verde); background: rgba(63,182,122,.12); }
+  .d-REVISION_HUMANA { color: var(--amarillo); background: rgba(224,179,65,.12); }
+  .d-ESCALAR { color: var(--rojo); background: rgba(226,89,91,.12); }
+  .d-NO_REQUIERE { color: var(--gris); background: rgba(124,135,148,.12); }
+  .d-NINGUNA { color: var(--rojo); background: rgba(226,89,91,.08); }
+  .p-alta { color: var(--rojo); }
+  .p-media { color: var(--amarillo); }
+  .p-baja { color: var(--verde); }
+  .v-APROBADO { color: var(--verde); }
+  .v-OBSERVADO { color: var(--amarillo); }
+  .bloque { margin-top: 16px; }
+  .texto-agente {
+    background: var(--superficie-2); border: 1px solid var(--borde); border-radius: 8px;
+    padding: 12px 14px; white-space: pre-wrap; font-size: 14px;
+  }
+  dl.campos { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0;
+    background: var(--superficie-2); border: 1px solid var(--borde); border-radius: 8px; padding: 12px 14px; font-size: 14px; }
+  dl.campos dt { color: var(--texto-suave); }
+  dl.campos dd { margin: 0; word-break: break-word; }
+  ul.observaciones { margin: 6px 0 0; padding-left: 20px; font-size: 14px; }
+  .banner-error {
+    border: 1px solid var(--rojo); background: rgba(226,89,91,.1); color: #f3b5b6;
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--borde); vertical-align: top; }
+  th { color: var(--texto-suave); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .barra { height: 6px; background: var(--acento); border-radius: 3px; min-width: 2px; }
+  .seccion-traza { margin-top: 20px; }
+  .paneles { margin-top: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .panel .cabecera { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .panel .cabecera h2 { margin: 0; }
+  .contador { font-size: 12px; color: var(--texto-suave); background: var(--superficie-2); border: 1px solid var(--borde); border-radius: 999px; padding: 1px 9px; }
+  .lista { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .item { background: var(--superficie-2); border: 1px solid var(--borde); border-radius: 8px; padding: 9px 12px; font-size: 13px; }
+  .item .titulo { font-weight: 600; font-size: 14px; }
+  .item .meta { color: var(--texto-suave); font-size: 12px; }
+  .item .detalle { margin-top: 3px; word-break: break-word; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+  @media (max-width: 900px) {
+    header, main { padding-left: 16px; padding-right: 16px; }
+    .rejilla, .paneles { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Botica Sophia <span>·</span> Sistema Inteligente de Abastecimiento</h1>
+    <p>Detectar stock bajo y generar solicitud de abastecimiento · Inventario → Abastecimiento → Validador → Compuerta HITL</p>
+  </div>
+  <button class="boton-secundario" id="btnReiniciar" type="button">Reiniciar demo</button>
+</header>
+
+<main>
+  <div class="rejilla">
+    <section class="tarjeta">
+      <h2>Datos de la solicitud</h2>
+      <form id="formulario" novalidate>
+        <label for="producto">Producto</label>
+        <select id="producto" required></select>
+
+        <label for="sede">Sede</label>
+        <select id="sede" required></select>
+
+        <div class="fila">
+          <div>
+            <label for="cantidad_disponible">Cantidad disponible</label>
+            <input id="cantidad_disponible" type="number" step="1" required>
+          </div>
+          <div>
+            <label for="stock_minimo">Stock mínimo</label>
+            <input id="stock_minimo" type="number" step="1" required>
+          </div>
+        </div>
+        <div class="ayuda" id="ayudaInventario"></div>
+
+        <label for="cantidad_solicitada">Cantidad solicitada (opcional)</label>
+        <input id="cantidad_solicitada" type="number" step="1" placeholder="Si se deja vacío, se usa la cantidad sugerida">
+
+        <label for="fecha_solicitud">Fecha de solicitud</label>
+        <input id="fecha_solicitud" type="date" required>
+
+        <label for="responsable">Responsable</label>
+        <input id="responsable" type="text" maxlength="200" required>
+
+        <button class="boton-principal" id="btnAnalizar" type="submit">Analizar</button>
+      </form>
+    </section>
+
+    <section class="tarjeta" id="resultado">
+      <h2>Resultado de la ejecución</h2>
+      <p class="vacio">Completa el formulario y pulsa <strong>Analizar</strong> para ejecutar el flujo multiagente.</p>
+    </section>
+  </div>
+
+  <section class="tarjeta seccion-traza">
+    <h2>Traza de la ejecución</h2>
+    <div id="traza"><p class="vacio">Aún no hay ejecuciones en esta sesión.</p></div>
+  </section>
+
+  <div class="paneles">
+    <section class="tarjeta panel">
+      <div class="cabecera"><h2>Solicitudes registradas</h2><span class="contador" id="cSolicitudes">0</span></div>
+      <div class="lista" id="pSolicitudes"></div>
+    </section>
+    <section class="tarjeta panel">
+      <div class="cabecera"><h2>Cola de revisión humana</h2><span class="contador" id="cRevision">0</span></div>
+      <div class="lista" id="pRevision"></div>
+    </section>
+    <section class="tarjeta panel">
+      <div class="cabecera"><h2>Alertas</h2><span class="contador" id="cAlertas">0</span></div>
+      <div class="lista" id="pAlertas"></div>
+    </section>
+    <section class="tarjeta panel">
+      <div class="cabecera"><h2>Cola de errores</h2><span class="contador" id="cErrores">0</span></div>
+      <div class="lista" id="pErrores"></div>
+    </section>
+  </div>
+</main>
+
+<script>
+const API = "/api/v1";
+const $ = (id) => document.getElementById(id);
+let inventario = [];
+
+const NOMBRES_NODO = {
+  nodo_validar_contrato: "Validar contrato de entrada",
+  nodo_detectar_duplicado: "Detectar duplicado (sin LLM)",
+  nodo_a01_inventario: "A01 · Agente de Inventario",
+  nodo_a02_abastecimiento: "A02 · Agente de Abastecimiento",
+  nodo_a03_validador: "A03 · Agente Validador",
+  nodo_decidir_hitl: "Compuerta HITL",
+  nodo_verificar_idempotencia: "Verificar idempotencia",
+  nodo_registrar_solicitud: "Registrar solicitud",
+  nodo_encolar_revision: "Encolar revisión humana",
+  nodo_escalar_alerta: "Escalar alerta a gerencia",
+  nodo_fin_error: "Fin por error",
+};
+
+function esc(valor) {
+  return String(valor ?? "").replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
+}
+
+function fechaLocalHoy() {
+  const d = new Date();
+  const dos = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}`;
+}
+
+function formatoMomento(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return isNaN(d) ? iso : d.toLocaleString("es-PE");
+}
+
+/* ---------- Formulario ---------- */
+
+function registroSeleccionado() {
+  const id = Number($("producto").value);
+  const sede = $("sede").value;
+  return inventario.find((r) => r.id_producto === id && r.sede === sede);
+}
+
+function llenarSedes() {
+  const id = Number($("producto").value);
+  const sedes = inventario.filter((r) => r.id_producto === id).map((r) => r.sede);
+  $("sede").innerHTML = sedes.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+  autocompletar();
+}
+
+function autocompletar() {
+  const reg = registroSeleccionado();
+  if (!reg) return;
+  $("cantidad_disponible").value = reg.cantidad_disponible;
+  $("stock_minimo").value = reg.stock_minimo;
+  marcarDiferencias();
+}
+
+function marcarDiferencias() {
+  const reg = registroSeleccionado();
+  if (!reg) return;
+  const disp = $("cantidad_disponible"), min = $("stock_minimo");
+  const difDisp = disp.value !== "" && Number(disp.value) !== reg.cantidad_disponible;
+  const difMin = min.value !== "" && Number(min.value) !== reg.stock_minimo;
+  disp.classList.toggle("difiere", difDisp);
+  min.classList.toggle("difiere", difMin);
+  const ayuda = $("ayudaInventario");
+  ayuda.textContent = `Inventario: disponible ${reg.cantidad_disponible}, mínimo ${reg.stock_minimo}` +
+    (difDisp || difMin ? " · los valores editados no coinciden con el inventario" : "");
+  ayuda.classList.toggle("aviso", difDisp || difMin);
+}
+
+async function cargarInventario() {
+  const r = await fetch(`${API}/inventario`);
+  inventario = await r.json();
+  const productos = new Map();
+  inventario.forEach((reg) => productos.set(reg.id_producto, reg.nombre_producto));
+  $("producto").innerHTML = [...productos].sort((a, b) => a[0] - b[0])
+    .map(([id, nombre]) => `<option value="${id}">${id} · ${esc(nombre)}</option>`).join("");
+  llenarSedes();
+}
+
+function entero(id) {
+  const v = $(id).value.trim();
+  return v === "" ? null : Number(v);
+}
+
+async function analizar(evento) {
+  evento.preventDefault();
+  const reg = registroSeleccionado();
+  const faltan = ["cantidad_disponible", "stock_minimo"].filter((id) => $(id).value.trim() === "");
+  if (faltan.length) {
+    mostrarErrorPeticion("Completa la cantidad disponible y el stock mínimo.");
+    return;
+  }
+  const cuerpo = {
+    id_producto: Number($("producto").value),
+    nombre_producto: reg ? reg.nombre_producto : $("producto").selectedOptions[0]?.textContent ?? "",
+    cantidad_disponible: entero("cantidad_disponible"),
+    stock_minimo: entero("stock_minimo"),
+    cantidad_solicitada: entero("cantidad_solicitada"),
+    sede: $("sede").value,
+    fecha_solicitud: $("fecha_solicitud").value,
+    responsable: $("responsable").value,
+  };
+
+  const boton = $("btnAnalizar");
+  boton.disabled = true;
+  boton.textContent = "Analizando…";
+  try {
+    const r = await fetch(`${API}/solicitud`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cuerpo),
+    });
+    const datos = await r.json();
+    if (!r.ok) {
+      const detalle = Array.isArray(datos.detail)
+        ? datos.detail.map((d) => `${d.loc?.slice(-1)[0]}: ${d.msg}`).join("; ")
+        : datos.detail;
+      mostrarErrorPeticion(`La API respondió ${r.status}: ${detalle}`);
+    } else {
+      mostrarResultado(datos);
+      mostrarTraza(datos.traza);
+    }
+  } catch (e) {
+    mostrarErrorPeticion(`No se pudo conectar con la API: ${e.message}`);
+  } finally {
+    boton.disabled = false;
+    boton.textContent = "Analizar";
+    cargarPaneles();
+  }
+}
+
+/* ---------- Resultado ---------- */
+
+function mostrarErrorPeticion(mensaje) {
+  $("resultado").innerHTML = `<h2>Resultado de la ejecución</h2><div class="banner-error">${esc(mensaje)}</div>`;
+}
+
+function indicador(etiqueta, valorHtml) {
+  return `<div class="indicador"><div class="etiqueta">${esc(etiqueta)}</div><div class="valor">${valorHtml}</div></div>`;
+}
+
+function mostrarResultado(d) {
+  // Duplicado detectado al inicio: no hubo error, la solicitud ya estaba registrada
+  const duplicado = !d.decision_hitl && d.ya_procesada === true;
+  const decision = d.decision_hitl || (duplicado ? "REVISION_HUMANA" : "NINGUNA");
+  const textoDecision = d.decision_hitl || (duplicado ? "No aplica (ya registrada)" : "Sin decisión (error)");
+  const reposicion = d.requiere_reposicion === null ? "—" : (d.requiere_reposicion ? "Sí" : "No");
+  const prioridad = d.prioridad ? `<span class="p-${esc(d.prioridad)}">${esc(d.prioridad)}</span>` : "—";
+  const validacion = d.resultado_validacion
+    ? `<span class="v-${esc(d.resultado_validacion)}">${esc(d.resultado_validacion)}</span>` : "—";
+  let estadoRegistro = "—";
+  if (d.ya_procesada === true) estadoRegistro = '<span class="insignia d-REVISION_HUMANA">YA_PROCESADA</span>';
+  else if (d.ya_procesada === false) estadoRegistro = "Nueva solicitud";
+
+  let html = `<h2>Resultado de la ejecución</h2>`;
+  if (d.estado_proceso !== "ok" && d.mensaje_error) {
+    html += `<div class="banner-error"><strong>${esc(d.estado_proceso)}</strong>: ${esc(d.mensaje_error)}</div>`;
+  }
+  html += `<div class="indicadores">
+    ${indicador("Decisión HITL", `<span class="insignia d-${esc(decision)}">${esc(textoDecision)}</span>`)}
+    ${indicador("¿Requiere reposición?", reposicion)}
+    ${indicador("Prioridad", prioridad)}
+    ${indicador("Cantidad sugerida", d.cantidad_sugerida ?? "—")}
+    ${indicador("Validación", validacion)}
+    ${indicador("Código de solicitud", d.codigo_solicitud ? `<span class="mono">${esc(d.codigo_solicitud)}</span>` : "—")}
+    ${indicador("Registro", estadoRegistro)}
+  </div>`;
+
+  html += `<div class="bloque"><h3>Análisis del Agente de Inventario</h3>
+    ${d.analisis_inventario ? `<div class="texto-agente">${esc(d.analisis_inventario)}</div>` : '<p class="vacio">No se generó análisis.</p>'}
+  </div>`;
+
+  html += `<div class="bloque"><h3>Propuesta del Agente de Abastecimiento</h3>`;
+  if (d.propuesta) {
+    const p = d.propuesta;
+    html += `<dl class="campos">
+      <dt>Producto</dt><dd>${esc(p.producto)}</dd>
+      <dt>Sede</dt><dd>${esc(p.sede)}</dd>
+      <dt>Cantidad solicitada</dt><dd>${esc(p.cantidad_solicitada)}</dd>
+      <dt>Prioridad</dt><dd>${esc(p.prioridad)}</dd>
+      <dt>Tipo de solicitud</dt><dd>${esc(p.tipo_solicitud)}</dd>
+      <dt>Observaciones</dt><dd>${esc(p.observaciones)}</dd>
+    </dl>`;
+  } else {
+    html += `<p class="vacio">No se generó propuesta.</p>`;
+  }
+  html += `</div>`;
+
+  html += `<div class="bloque"><h3>Agente Validador</h3>`;
+  if (d.resultado_validacion) {
+    const obs = d.observaciones_validador || [];
+    html += `<div>Estado: ${validacion}</div>` + (obs.length
+      ? `<ul class="observaciones">${obs.map((o) => `<li>${esc(o)}</li>`).join("")}</ul>`
+      : `<p class="vacio">Sin observaciones.</p>`);
+  } else {
+    html += `<p class="vacio">El Validador no se ejecutó en este caso.</p>`;
+  }
+  html += `</div>`;
+
+  $("resultado").innerHTML = html;
+}
+
+function mostrarTraza(traza) {
+  if (!traza || !traza.length) {
+    $("traza").innerHTML = '<p class="vacio">La ejecución no devolvió traza.</p>';
+    return;
+  }
+  const maximo = Math.max(...traza.map((p) => p.duracion_ms), 1);
+  const total = traza.reduce((s, p) => s + p.duracion_ms, 0);
+  $("traza").innerHTML = `<table>
+    <thead><tr><th>#</th><th>Nodo</th><th>Resultado</th><th style="text-align:right">Duración</th><th style="width:25%"></th></tr></thead>
+    <tbody>${traza.map((p, i) => `<tr>
+      <td>${i + 1}</td>
+      <td>${esc(NOMBRES_NODO[p.nodo] || p.nodo)}<div class="meta mono" style="color:var(--texto-suave)">${esc(p.nodo)}</div></td>
+      <td class="mono">${esc(p.resultado)}</td>
+      <td class="num">${p.duracion_ms.toFixed(1)} ms</td>
+      <td><div class="barra" style="width:${(p.duracion_ms / maximo) * 100}%"></div></td>
+    </tr>`).join("")}</tbody>
+    <tfoot><tr><td></td><td><strong>Total</strong></td><td></td><td class="num"><strong>${total.toFixed(1)} ms</strong></td><td></td></tr></tfoot>
+  </table>`;
+}
+
+/* ---------- Paneles ---------- */
+
+function item(titulo, meta, detalle) {
+  return `<div class="item"><div class="titulo">${titulo}</div>` +
+    (meta ? `<div class="meta">${meta}</div>` : "") +
+    (detalle ? `<div class="detalle">${detalle}</div>` : "") + `</div>`;
+}
+
+function pintarPanel(idLista, idContador, registros, render, textoVacio) {
+  $(idContador).textContent = registros.length;
+  $(idLista).innerHTML = registros.length
+    ? [...registros].reverse().map(render).join("")
+    : `<p class="vacio">${textoVacio}</p>`;
+}
+
+async function cargarPaneles() {
+  const r = await fetch(`${API}/paneles`);
+  const p = await r.json();
+
+  pintarPanel("pSolicitudes", "cSolicitudes", p.solicitudes, (s) => item(
+    `<span class="mono">${esc(s.codigo_solicitud)}</span> · ${esc(s.nombre_producto)}`,
+    `${esc(s.sede)} · ${esc(formatoMomento(s.fecha_registro))}`,
+    `Cantidad ${esc(s.cantidad_solicitada)} · prioridad <span class="p-${esc(s.prioridad)}">${esc(s.prioridad)}</span> · ${esc(s.estado_solicitud)}`,
+  ), "No hay solicitudes registradas.");
+
+  pintarPanel("pRevision", "cRevision", p.cola_revision, (c) => item(
+    `${esc(c.nombre_producto)} · ${esc(c.sede)}`,
+    `${esc(formatoMomento(c.momento))} · validación ${esc(c.resultado_validacion ?? "—")}`,
+    (c.observaciones_validador || []).map(esc).join("<br>"),
+  ), "No hay casos pendientes de revisión.");
+
+  pintarPanel("pAlertas", "cAlertas", p.alertas, (a) => item(
+    `${esc(a.tipo)}${a.nombre_producto ? " · " + esc(a.nombre_producto) : ""}`,
+    `${esc(formatoMomento(a.momento))}${a.sede ? " · " + esc(a.sede) : ""} · ${esc(a.estado_proceso)}`,
+    esc(a.mensaje_error || a.mensaje || ""),
+  ), "No hay alertas.");
+
+  pintarPanel("pErrores", "cErrores", p.cola_errores, (e) => item(
+    `${esc(e.clase_error)} · nodo ${esc(e.nodo)}`,
+    `${esc(formatoMomento(e.momento))} · <span class="mono">${esc(String(e.identificador).slice(0, 8))}</span>`,
+    esc(e.mensaje),
+  ), "No hay errores registrados.");
+}
+
+async function reiniciar() {
+  if (!confirm("¿Vaciar solicitudes, alertas, cola de revisión, cola de errores y trazas? El inventario no se modifica.")) return;
+  await fetch(`${API}/reiniciar`, { method: "POST" });
+  $("resultado").innerHTML = '<h2>Resultado de la ejecución</h2><p class="vacio">Demo reiniciada. Completa el formulario y pulsa <strong>Analizar</strong>.</p>';
+  $("traza").innerHTML = '<p class="vacio">Aún no hay ejecuciones en esta sesión.</p>';
+  cargarPaneles();
+}
+
+/* ---------- Inicio ---------- */
+
+$("producto").addEventListener("change", llenarSedes);
+$("sede").addEventListener("change", autocompletar);
+$("cantidad_disponible").addEventListener("input", marcarDiferencias);
+$("stock_minimo").addEventListener("input", marcarDiferencias);
+$("formulario").addEventListener("submit", analizar);
+$("btnReiniciar").addEventListener("click", reiniciar);
+$("fecha_solicitud").value = fechaLocalHoy();
+$("responsable").value = "Asistente administrativa";
+
+cargarInventario();
+cargarPaneles();
+</script>
+</body>
+</html>
